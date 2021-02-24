@@ -14,9 +14,9 @@ exports.fetchData = async (category, req, res, next) => {
     }
 };
 
-exports.removeDuplicates = async (data) => {
+exports.removeDuplicates = (data) => {
     try {
-        const manufacturers = await data.map((p) => p.manufacturer);
+        const manufacturers = data.map((p) => p.manufacturer);
         const uniqueManufacturers = [...new Set(manufacturers)];
 
         return uniqueManufacturers;
