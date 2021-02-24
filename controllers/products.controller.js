@@ -3,6 +3,7 @@ const fetch = require("node-fetch");
 const {
     fetchData,
     getAvailability,
+    removeDuplicates,
     errorHandling,
 } = require("../middleware/Utils");
 
@@ -16,8 +17,13 @@ exports.getBeanies = async (req, res, next) => {
         const response = await fetch(`${BASE_URL}/beanies`);
         const data = await response.json();
 
-        /* const availability = getAvailability(data);
-        console.log(availability); */
+        const uniqueBrands = removeDuplicates(data);
+
+        const availability = uniqueBrands.map((b) => getAvailability(b));
+
+        const beanies = [...new Set([...data, ...availability])];
+
+        console.log(beanies);
 
         res.status(200).json(data);
     } catch (err) {
