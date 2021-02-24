@@ -2,6 +2,8 @@ const express = require("express");
 const bp = require("body-parser");
 const morgan = require("morgan");
 
+const productRoutes = require("./routes/products.routes");
+
 const app = express();
 
 // Middleware
