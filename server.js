@@ -9,7 +9,7 @@ app.use(morgan("dev"));
 app.use(bp.urlencoded({ extended: false }));
 app.use(bp.json());
 
-app.use("/products", prdouctRoutes);
+app.use("/api/products", productRoutes);
 
 app.use((req, res, next) => {
     const error = new Error("Requested resource not found");
