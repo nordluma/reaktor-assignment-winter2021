@@ -49,11 +49,32 @@ exports.getBeanies = async (req, res, next) => {
 // @access  Public
 exports.getFacemasks = async (req, res, next) => {
     try {
-        const data = fetchData("facemasks");
+        // Fetches all facemasks
+        const data = await fetchData(`${BASE_URL}facemasks`);
 
-        res.status(200).json(data);
+        // Remove duplicate manufacturers and fetch availability
+        const availability = await getAvailability(removeDuplicates(data));
+
+        const array = availability.map((item) => item.response);
+        const availabilityArray = [].concat.apply([], array);
+
+        const filteredAvailability = availabilityArray.filter((value) =>
+            data.map((product) => product.id.includes(value.id))
+        );
+
+        console.log(`Availability: ${availabilityArray.length}`);
+        console.log(`Filtered: ${filteredAvailability.length}`);
+
+        const mergedArrayObjects = mergeProductsAndAvailability(
+            data,
+            availabilityArray
+        );
+
+        res.status(200).json(mergedArrayObjects);
     } catch (err) {
-        errorHandling(err);
+        const error = new Error(err);
+        error.status = err.status || 500;
+        next(error);
     }
 };
 
@@ -62,10 +83,31 @@ exports.getFacemasks = async (req, res, next) => {
 // @access  Public
 exports.getGloves = async (req, res, next) => {
     try {
-        const data = fetchData("gloves");
+        // Fetches all gloves
+        const data = await fetchData(`${BASE_URL}gloves`);
 
-        res.status(200).json(gloves);
+        // Remove duplicate manufacturers and fetch availability
+        const availability = await getAvailability(removeDuplicates(data));
+
+        const array = availability.map((item) => item.response);
+        const availabilityArray = [].concat.apply([], array);
+
+        const filteredAvailability = availabilityArray.filter((value) =>
+            data.map((product) => product.id.includes(value.id))
+        );
+
+        console.log(`Availability: ${availabilityArray.length}`);
+        console.log(`Filtered: ${filteredAvailability.length}`);
+
+        const mergedArrayObjects = mergeProductsAndAvailability(
+            data,
+            availabilityArray
+        );
+
+        res.status(200).json(mergedArrayObjects);
     } catch (err) {
-        errorHandling(err);
+        const error = new Error(err);
+        error.status = err.status || 500;
+        next(error);
     }
 };
