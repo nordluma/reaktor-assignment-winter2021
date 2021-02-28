@@ -31,11 +31,10 @@ const removeDuplicates = (data) => {
 
 const getAvailability = async (manufacturer) => {
     try {
-        const requests = manufacturer.map((brand) => {
+        const requests = manufacturer.map(async (brand) => {
             const url = `https://bad-api-assignment.reaktor.com/v2/availability/${brand}`;
-            return fetchData(url).then((a) => {
-                return a;
-            });
+            const a = fetchData(url);
+            return a;
         });
 
         return Promise.all(requests);
@@ -46,19 +45,30 @@ const getAvailability = async (manufacturer) => {
     }
 };
 
-const getAvailabilityId = (availability) => {
-    try {
-        return availability.map((a) => a.response.map((item) => item.id));
-    } catch (err) {
-        const error = new Error(err);
-        error.status = err.status || 500;
-        console.log(error);
-    }
-};
+const mergeProductsAndAvailability = (productData, availabilityData) => {
+    let result = [];
+    productData.forEach((pd) => {
+        const { id, type, name, color, price, manufacturer } = pd;
+        let product = {
+            id,
+            type,
+            name,
+            color,
+            price,
+            manufacturer,
+            availability: null,
+        };
+        let availabilityList = availabilityData.map((ad) => ad);
+        let foundIds = availabilityList.find((item) => item.id === id);
+        if (foundIds > 0) {
+            foundIds.forEach((fIds) => {
+                product.availability.push(fIds.DATAPAYLOAD);
+            });
+        }
+        result.push(product);
+    });
 
-// maybe
-const addAvailability = (availability, productId) => {
-    return availability.find((a) => a.id == productId);
+    return result;
 };
 
 // Implement if time
@@ -72,7 +82,6 @@ module.exports = {
     fetchData,
     removeDuplicates,
     getAvailability,
-    getAvailabilityId,
-    addAvailability,
+    mergeProductsAndAvailability,
     errorHandling,
 };
