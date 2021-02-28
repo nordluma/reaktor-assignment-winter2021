@@ -4,8 +4,11 @@ const {
     fetchData,
     getAvailability,
     removeDuplicates,
+    addAvailability,
+    filterArray,
     errorHandling,
-} = require("../middleware/Utils");
+    createProduct,
+} = require("../utils/Utils");
 
 const BASE_URL = "https://bad-api-assignment.reaktor.com/v2/products";
 
@@ -14,18 +17,71 @@ const BASE_URL = "https://bad-api-assignment.reaktor.com/v2/products";
 // @access  Public
 exports.getBeanies = async (req, res, next) => {
     try {
-        const response = await fetch(`${BASE_URL}/beanies`);
-        const data = await response.json();
+        // Fetches all beanies
+        const data = await fetchData(`${BASE_URL}/beanies`);
 
+        // Removes duplicate brands
         const uniqueBrands = removeDuplicates(data);
 
-        const availability = uniqueBrands.map((b) => getAvailability(b));
+        // Fetches availability for all unique manufacturers
+        const availability = await getAvailability(uniqueBrands);
 
-        const beanies = [...new Set([...data, ...availability])];
+        // Creates an array of availability ids
+        const availabilityIds = availability.map((a) =>
+            Promise.all(a.response.map((item) => item.id))
+        );
 
-        console.log(beanies);
+        // Creates an array of product ids
+        const productIds = data.map((p) => {
+            return p.id;
+        });
 
-        res.status(200).json(data);
+        // filters
+        const filteredAvailability = availability.filter((value) =>
+            productIds.map((item) => item.includes(value))
+        );
+
+        console.log(
+            `Availability: ${availabilityIds.map((brand) => brand.length)}`
+        );
+
+        console.log(
+            `Filtered Availability: ${filteredAvailability.map(
+                (item) => item.length
+            )}`
+        );
+        console.log(`Products: ${productIds.length}`);
+
+        //const availabilityArray = responseArray.map((subarray) => subarray);
+
+        //const availabilityIds = availabilityArray.map((item) => item.id);
+
+        ////////////////////////////////////////////////////////
+
+        // Filters all the ids not found in beanies data
+        //const filteredAvailability = await filterArray(data, availabilityArray);
+
+        /* const equalsIgnoreOrder = (a, b) => {
+            if (a.length !== b.length) return false;
+            const uniqueValues = new Set([...a, ...b]);
+            for (const v of uniqueValues) {
+                const aCount = a.filter((e) => e === v).length;
+                const bCount = b.filter((e) => e === v).length;
+                if (aCount !== bCount) return false;
+            }
+            return true;
+        };
+
+        const answer = equalsIgnoreOrder(
+            availabilityArray,
+            filteredAvailability
+        );
+
+        console.log(answer); */
+
+        ////////////////////////////////////////////////////////
+
+        res.status(200).json(filteredAvailability);
     } catch (err) {
         const error = new Error(err);
         error.status = err.status || 500;
