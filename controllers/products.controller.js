@@ -36,7 +36,7 @@ exports.getBeanies = async (req, res, next) => {
             availabilityArray
         );
 
-        res.status(200).json(availabilityArray);
+        res.status(200).json(mergedArrayObjects);
     } catch (err) {
         const error = new Error(err);
         error.status = err.status || 500;
