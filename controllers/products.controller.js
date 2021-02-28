@@ -5,9 +5,7 @@ const {
     getAvailability,
     removeDuplicates,
     addAvailability,
-    filterArray,
     errorHandling,
-    createProduct,
 } = require("../utils/Utils");
 
 const BASE_URL = "https://bad-api-assignment.reaktor.com/v2/products";
@@ -52,14 +50,7 @@ exports.getBeanies = async (req, res, next) => {
         );
         console.log(`Products: ${productIds.length}`);
 
-        //const availabilityArray = responseArray.map((subarray) => subarray);
-
-        //const availabilityIds = availabilityArray.map((item) => item.id);
-
         ////////////////////////////////////////////////////////
-
-        // Filters all the ids not found in beanies data
-        //const filteredAvailability = await filterArray(data, availabilityArray);
 
         /* const equalsIgnoreOrder = (a, b) => {
             if (a.length !== b.length) return false;
