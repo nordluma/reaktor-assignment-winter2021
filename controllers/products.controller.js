@@ -4,11 +4,11 @@ const {
     fetchData,
     getAvailability,
     removeDuplicates,
-    addAvailability,
+    mergeProductsAndAvailability,
     errorHandling,
 } = require("../utils/Utils");
 
-const BASE_URL = "https://bad-api-assignment.reaktor.com/v2/products";
+const BASE_URL = "https://bad-api-assignment.reaktor.com/v2/products/";
 
 // @desc    Get all beanies
 // @route   GET /beanies
@@ -16,63 +16,27 @@ const BASE_URL = "https://bad-api-assignment.reaktor.com/v2/products";
 exports.getBeanies = async (req, res, next) => {
     try {
         // Fetches all beanies
-        const data = await fetchData(`${BASE_URL}/beanies`);
+        const data = await fetchData(`${BASE_URL}beanies`);
 
-        // Removes duplicate brands
-        const uniqueBrands = removeDuplicates(data);
+        // Remove duplicate manufacturers and fetch availability
+        const availability = await getAvailability(removeDuplicates(data));
 
-        // Fetches availability for all unique manufacturers
-        const availability = await getAvailability(uniqueBrands);
+        const array = availability.map((item) => item.response);
+        const availabilityArray = [].concat.apply([], array);
 
-        // Creates an array of availability ids
-        const availabilityIds = availability.map((a) =>
-            Promise.all(a.response.map((item) => item.id))
+        const filteredAvailability = availabilityArray.filter((value) =>
+            data.map((product) => product.id.includes(value.id))
         );
 
-        // Creates an array of product ids
-        const productIds = data.map((p) => {
-            return p.id;
-        });
+        console.log(`Availability: ${availabilityArray.length}`);
+        console.log(`Filtered: ${filteredAvailability.length}`);
 
-        // filters
-        const filteredAvailability = availability.filter((value) =>
-            productIds.map((item) => item.includes(value))
+        const mergedArrayObjects = mergeProductsAndAvailability(
+            data,
+            availabilityArray
         );
 
-        console.log(
-            `Availability: ${availabilityIds.map((brand) => brand.length)}`
-        );
-
-        console.log(
-            `Filtered Availability: ${filteredAvailability.map(
-                (item) => item.length
-            )}`
-        );
-        console.log(`Products: ${productIds.length}`);
-
-        ////////////////////////////////////////////////////////
-
-        /* const equalsIgnoreOrder = (a, b) => {
-            if (a.length !== b.length) return false;
-            const uniqueValues = new Set([...a, ...b]);
-            for (const v of uniqueValues) {
-                const aCount = a.filter((e) => e === v).length;
-                const bCount = b.filter((e) => e === v).length;
-                if (aCount !== bCount) return false;
-            }
-            return true;
-        };
-
-        const answer = equalsIgnoreOrder(
-            availabilityArray,
-            filteredAvailability
-        );
-
-        console.log(answer); */
-
-        ////////////////////////////////////////////////////////
-
-        res.status(200).json(filteredAvailability);
+        res.status(200).json(availabilityArray);
     } catch (err) {
         const error = new Error(err);
         error.status = err.status || 500;
